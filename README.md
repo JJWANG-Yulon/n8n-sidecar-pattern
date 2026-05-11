@@ -5,13 +5,18 @@
 ## 1. 系統資訊流與通訊架構
 
 ```mermaid
-graph LR
-    User((使用者/外部)) -->|Webhook Trigger| n8n[n8n指揮官]
-    subgraph Docker Network [n8n_net]
-        n8n -->|HTTP Request| sidecar[Python Sidecar]
-        sidecar -->|Flask API| n8n
-    end
-    sidecar -->|抓取/分析| External(外部網站/數據)
+sequenceDiagram
+    participant U as User/外部
+    participant N as n8n (指揮官)
+    participant S as Python Sidecar (專家)
+    participant E as External (外部服務)
+
+    U->>N: Webhook Trigger (GET/POST)
+    N->>S: API Request (http://sidecar:5000/api/...)
+    S->>E: 執行爬蟲/分析邏輯
+    E-->>S: 回傳原始數據
+    S-->>N: 回傳處理後結果 (JSON)
+    N-->>U: Webhook Response
 ```
 
 ## 2. 架構說明
@@ -45,8 +50,8 @@ docker compose up -d --build
 ```
 
 ### 2. 服務存取
-*   **n8n (指揮官)**: `http://localhost:5678`
-*   **Python Sidecar API (專家)**: `http://localhost:5000`
+*   **n8n (指揮官)**: http://localhost:5678
+*   **Python Sidecar API (專家)**: http://localhost:5000
 
 ## 5. 測試驗證方式
 
