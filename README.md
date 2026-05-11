@@ -1,37 +1,64 @@
-# n8n Sidecar Pattern (Production)
+# n8n Sidecar Pattern (生產環境部署)
 
-這是一個將 **n8n 工作流編排** 與 **Python 邏輯處理 (Sidecar)** 模組化整合的生產級部署架構。
+本專案展示如何透過 Docker Compose 建立一個具備 **Sidecar 架構** 的自動化環境，由 **n8n** 進行工作流編排，並調用 **Python 專業 Sidecar 服務** 執行數據處理任務。
 
-## 架構說明
-本專案透過 Sidecar Pattern 解耦 n8n 的沙盒限制，並藉由 Docker Compose 與 Systemd 實現高可用性。
+## 1. 系統資訊流與通訊架構
 
-### 目錄結構
-- `docker-compose.yml`: 定義 n8n 與 Sidecar 服務。
-- `sidecar/`: 核心邏輯處理目錄 (Flask 路由、爬蟲、分析)。
-- `data/`, `logs/`, `files/`: 資料持久化目錄。
-
-## 部署 SOP
-
-### 1. 服務啟動
-確保 Docker 服務運行後，執行：
-```bash
-docker compose up -d
+```mermaid
+graph LR
+    User((使用者/外部)) -->|Webhook Trigger| n8n[n8n指揮官]
+    subgraph Docker Network [n8n_net]
+        n8n -->|HTTP Request| sidecar[Python Sidecar]
+        sidecar -->|Flask API| n8n
+    end
+    sidecar -->|抓取/分析| External(外部網站/數據)
 ```
 
-### 2. 開機自啟 (Systemd)
-本專案整合 Systemd 管理，將以下服務配置至 `/etc/systemd/system/n8n-production.service`：
-- 自動故障重啟 (`Restart=on-failure`)
-- 隨 Docker Engine 自動啟動
+## 2. 架構說明
 
-### 3. API 調用規範
-在 n8n 的 HTTP Request 節點中使用：
-- **Analyzer**: `http://sidecar:5000/api/analyzer/analyze` (POST)
-- **Scraper**: `http://sidecar:5000/api/scraper/scrape` (GET)
+*   **n8n (指揮官)**: 負責流程編排、接收外部 Webhook 觸發，並透過內部網路調用 Sidecar。
+*   **Python Sidecar (專業 Worker)**: 運行 Flask 服務，內建 `requests` 與 `beautifulsoup4`，負責執行實際的網頁抓取與邏輯分析任務。
+*   **內部通訊**: 使用 Docker 內部網路 `n8n_net`，n8n 可透過 `http://sidecar:5000` 直接存取 Python 服務。
 
-## 維護建議
-- **路由擴展**: 新增 `routes/` 檔案並於 `app.py` 中使用 Blueprint 註冊。
-- **套件管理**: 修改 `sidecar/requirements.txt` 後，需重新執行 `docker compose up -d --build`。
-- **狀態檢查**: 使用 `docker compose logs sidecar` 查看邏輯執行狀況。
+## 3. 目錄結構
 
----
-*Powered by Hermes Architecture - 狀態恢復能力 (State Recovery) 主導設計。*
+```text
+/home/user/n8n/
+├── docker-compose.yml          # 容器服務定義 (整合 n8n 與 Sidecar)
+├── data/                       # n8n 資料持久化
+├── logs/                       # 日誌持久化
+├── files/                      # 檔案持久化
+└── sidecar/                    # Python 執行環境
+    ├── Dockerfile              # Python 執行環境建置檔
+    ├── app.py                  # Flask API 主程式
+    └── routes/                 # 功能模組路由
+        ├── analyzer.py         # 字數統計模組
+        └── scraper.py          # 網頁爬蟲模組
+```
+
+## 4. 快速啟動
+
+### 1. 啟動服務
+於 `/home/user/n8n/` 目錄下執行：
+```bash
+docker compose up -d --build
+```
+
+### 2. 服務存取
+*   **n8n (指揮官)**: `http://localhost:5678`
+*   **Python Sidecar API (專家)**: `http://localhost:5000`
+
+## 5. 測試驗證方式
+
+### 1. 直連 Sidecar API 測試 (開發調試)
+直接測試 Python 容器邏輯，無需經過 n8n：
+*   **爬蟲測試**: `curl -s "http://localhost:5000/api/scraper/scrape?url=https://www.google.com"`
+*   **分析測試**: `curl -X POST "http://localhost:5000/api/analyzer/analyze" -H "Content-Type: application/json" -d '{"text":"測試內容"}'`
+
+### 2. n8n 工作流觸發測試
+透過 n8n Webhook 觸發：
+*   `curl -X POST http://localhost:5678/webhook/analyze-trigger -H "Content-Type: application/json" -d '{"text":"測試內容"}'`
+
+## 6. 系統維運
+*   **自動化重啟**: 本專案整合 Systemd 管理 (`n8n-production.service`)，若容器意外停止，系統將自動修復並重啟。
+*   **更新邏輯**: 修改 Sidecar 程式碼後，請執行 `docker compose up -d --build`。
