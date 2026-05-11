@@ -11,9 +11,12 @@ curl -s http://localhost:5000/health
 # 預期回應: {"status":"ok"}
 ```
 
-### 測試 Analyzer 模組
+### 測試 Analyzer 模組 (生產級 Payload)
 ```bash
-curl -X POST http://localhost:5000/api/analyzer/analyze   -H "Content-Type: application/json"   -d '{"text":"這是一個測試句子，用來驗證 sidecar 分析功能。"}'
+curl -X POST http://localhost:5000/api/analyzer/analyze   -H "Content-Type: application/json"   -d '{
+    "text": "這是生產級測試內容，確保 Payload 格式標準化。",
+    "metadata": { "source": "api-test" }
+  }'
 # 預期回應: 包含 "word_count" 與 "status": "success"
 ```
 
@@ -27,10 +30,10 @@ curl -s "http://localhost:5000/api/scraper/scrape?url=https://www.google.com"
 確保 n8n 的 HTTP Request 節點已正確連結：
 
 1. **啟用工作流**: 確保 n8n 中的 Webhook 工作流已切換為 **Active**。
-2. **觸發 Webhook**:
+2. **觸發 Webhook (生產級 Payload)**:
    ```bash
    # 測試 Analyzer 工作流
-   curl -X POST http://localhost:5678/webhook/analyze-trigger -d '{"text":"測試內容"}'
+   curl -X POST http://localhost:5678/webhook/analyze-trigger      -H "Content-Type: application/json"      -d '{"text": "這是生產級測試內容", "metadata": {"source": "n8n-test"}}'
    
    # 測試 Scraper 工作流
    curl -X GET "http://localhost:5678/webhook/scrape-trigger?url=https://www.google.com"
