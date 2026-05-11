@@ -1,0 +1,31 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_API_KEY=hermes_local_key
+      # --- 關鍵修正開始 ---
+      - N8N_BLOCK_FS_WRITE_ACCESS=false
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+      # --- 關鍵修正結束 ---
+      - N8N_USER_FOLDER=/home/node/.n8n
+    volumes:
+      - ./data:/home/node/.n8n
+      # 將主機當前目錄下的 logs 資料夾掛載到容器的 /data/logs
+      - ./logs:/data/logs
+      # 掛載 n8n-files 以確保檔案持久化
+      - ./files:/home/node/.n8n-files
+    networks:
+      - n8n_net
+
+networks:
+  n8n_net:
+    driver: bridge

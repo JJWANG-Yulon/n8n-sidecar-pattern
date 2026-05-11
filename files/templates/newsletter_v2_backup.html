@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>{subject}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f9; }
+        .container { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .header { background: #001f3f; color: #ffffff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; margin: -40px -40px 30px -40px; }
+        .header h1 { margin: 0; font-size: 26px; }
+        .header p { margin: 10px 0 0; font-size: 14px; opacity: 0.8; }
+        .summary-box { background: #eef6fc; border-left: 6px solid #3498db; padding: 25px; margin-bottom: 35px; border-radius: 4px; }
+        .section-title { color: #001f3f; border-bottom: 2px solid #85144b; padding-bottom: 8px; margin: 40px 0 20px; font-size: 22px; font-weight: bold; }
+        .signal-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .signal-table th { background-color: #f8f9fa; color: #001f3f; padding: 12px; border: 1px solid #ddd; }
+        .signal-table td { padding: 12px; border: 1px solid #ddd; font-size: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{subject}</h1>
+            <p>{date} | 觀測區間: {time_window}</p>
+        </div>
+        
+        <div class="summary-box">
+            <h2>核心洞察</h2>
+            {core_insights}
+        </div>
+        
+        <div style="margin-bottom: 30px;"><img src="{img_cover}" style="width: 100%; border-radius: 8px;"></div>
+
+        <div class="section-title">一、 關鍵趨勢觀測 (30 秒速覽)</div>
+        <ul>{quick_look_html}</ul>
+
+        <div class="section-title">二、 戰情雷達</div>
+        {radar_items}
+
+        <div class="section-title">三、 價值鏈變革</div>
+        <table class="signal-table">{value_chain_rows}</table>
+
+        <div class="section-title">四、 深度因果分析</div>
+        {analysis}
+
+        <div class="section-title">五、 關鍵訊號</div>
+        <p><strong>加速訊號：</strong> {accelerate_signal}</p>
+        <p><strong>減速訊號：</strong> {decelerate_signal}</p>
+        <p><strong>戰略轉折：</strong> {pivot_signal}</p>
+
+        <div class="section-title">六、 關鍵詞彙</div>
+        <ul>{keyword_scan}</ul>
+
+        <div class="footer" style="text-align: center; margin-top: 50px; color: #7f8c8d;">
+            © 2026 Trend Probe Weekly. | <a href="{unsubscribe_url}">取消訂閱</a>
+        </div>
+    </div>
+</body>
+</html>
